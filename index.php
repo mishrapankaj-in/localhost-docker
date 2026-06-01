@@ -124,7 +124,7 @@ $applications = [
     'phpMyAdmin' => 'https://phpmyadmin.pk/',
     'MailHog' => 'https://mailhog.pk/',
     'sphinix' => 'https://sphinx.pk/',
-    'Site Manager' => 'https://docker-site-manager.pk/sites',
+    'Site Manager' => 'https://sitemanager.pk',
 ];
 
 $apacheDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
@@ -328,7 +328,7 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                 </div>
             <?php } ?>
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <a href="https://docker-site-manager.pk/sites" class="btn btn-warning" target="_blank" rel="noopener">
+                <a href="https://sitemanager.pk" class="btn btn-warning" target="_blank" rel="noopener">
                     <i class="bi bi-gear-fill" aria-hidden="true"></i> Manage project
                 </a>
                 <input type="text" id="searchInput" class="form-control search-box" style="max-width: 16rem;" placeholder="Search…" onkeyup="filterItems()">
