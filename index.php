@@ -92,10 +92,39 @@ $myworkHasProjects = $projectsByCategory['mywork'] !== [] || $projectsByCategory
 $myWorkDisplayProjects = array_merge($projectsByCategory['mywork'], $projectsByCategory['yii']);
 sort($myWorkDisplayProjects, SORT_STRING | SORT_FLAG_CASE);
 
+/** Split folder names: html.* → HTML bucket, everything else unchanged. */
+$partitionHtmlProjects = static function (array $projects): array {
+    $html = [];
+    $other = [];
+    foreach ($projects as $project) {
+        if (str_starts_with(strtolower($project), 'html')) {
+            $html[] = $project;
+        } else {
+            $other[] = $project;
+        }
+    }
+    sort($html, SORT_STRING | SORT_FLAG_CASE);
+    sort($other, SORT_STRING | SORT_FLAG_CASE);
+
+    return ['html' => $html, 'other' => $other];
+};
+
+$workPartition = $partitionHtmlProjects($projectsByCategory['work'] ?? []);
+$myWorkPartition = $partitionHtmlProjects($myWorkDisplayProjects);
+
+$workHtmlProjects = $workPartition['html'];
+$workRegularProjects = $workPartition['other'];
+$myWorkHtmlProjects = $myWorkPartition['html'];
+$myWorkRegularProjects = $myWorkPartition['other'];
+
+$htmlProjects = array_values(array_unique(array_merge($workHtmlProjects, $myWorkHtmlProjects)));
+sort($htmlProjects, SORT_STRING | SORT_FLAG_CASE);
+
 $applications = [
-    'phpMyAdmin' => 'https://phpmyadmin.pk/',    
+    'phpMyAdmin' => 'https://phpmyadmin.pk/',
     'MailHog' => 'https://mailhog.pk/',
-    'sphinix' => 'https://sphinx.pk/'
+    'sphinix' => 'https://sphinx.pk/',
+    'Site Manager' => 'https://docker-site-manager.pk/sites',
 ];
 
 $apacheDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
@@ -214,7 +243,7 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
 <body>
     <div class="d-flex">
         <nav class="sidebar">
-            <a href="http://localhost/" class="d-block text-center p-3 home" style="font-size: 1.5rem;">
+            <a href="https://localhost.pk/" class="d-block text-center p-3 home" style="font-size: 1.5rem;">
                 <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="Home" width="24"> Home
             </a>
             <a class="d-block js-sidebar-top-toggle" data-bs-toggle="collapse" href="#applications" role="button" aria-expanded="false">
@@ -230,15 +259,33 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
             </a>
             <div class="collapse show submenu" id="projects">
                 <?php
-                $workProjects = $projectsByCategory['work'] ?? [];
-
                 if (!$myworkVisible) {
                     $anySidebar = false;
-                    foreach ($workProjects as $project) {
-                        $anySidebar = true;
+                    $renderSidebarBucket = static function (string $bucketId, string $label, array $projects): void {
                         ?>
-                        <a href="https://<?= urlencode($project) ?>/" target="_blank" rel="noopener"> 📁 <?= htmlspecialchars($project) ?> </a>
+                        <a class="d-flex justify-content-between align-items-center px-3 py-2 small text-white text-decoration-none border-top border-white border-opacity-25" data-bs-toggle="collapse" href="#<?= htmlspecialchars($bucketId, ENT_QUOTES, 'UTF-8') ?>" role="button" aria-expanded="true">
+                            <span><?= htmlspecialchars($label) ?></span>
+                            <i class="bi bi-chevron-down small opacity-75" aria-hidden="true"></i>
+                        </a>
+                        <div class="collapse show submenu border-bottom border-white border-opacity-10" id="<?= htmlspecialchars($bucketId, ENT_QUOTES, 'UTF-8') ?>">
+                            <?php
+                            if ($projects === []) { ?>
+                                <span class="d-block px-3 py-2 small text-white-50">No projects</span>
+                            <?php } else {
+                                foreach ($projects as $project) { ?>
+                                    <a href="https://<?= urlencode($project) ?>/" target="_blank" rel="noopener"> 📁 <?= htmlspecialchars($project) ?> </a>
+                                <?php }
+                            } ?>
+                        </div>
                         <?php
+                    };
+                    if ($workHtmlProjects !== []) {
+                        $anySidebar = true;
+                        $renderSidebarBucket('sidebar-bucket-html', 'HTML', $workHtmlProjects);
+                    }
+                    if ($workRegularProjects !== []) {
+                        $anySidebar = true;
+                        $renderSidebarBucket('sidebar-bucket-work', 'Work', $workRegularProjects);
                     }
                     if (!$anySidebar) { ?>
                         <span class="d-block px-3 py-1 small text-white-50">No project folders found<?= $myworkHasProjects ? ' — use the key (bottom-right)' : '' ?></span>
@@ -262,8 +309,11 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                         </div>
                         <?php
                     };
-                    $renderSidebarBucket('sidebar-bucket-mywork', 'My Work', $myWorkDisplayProjects);
-                    $renderSidebarBucket('sidebar-bucket-work', 'Work', $workProjects);
+                    if ($htmlProjects !== []) {
+                        $renderSidebarBucket('sidebar-bucket-html', 'HTML', $htmlProjects);
+                    }
+                    $renderSidebarBucket('sidebar-bucket-mywork', 'My Work', $myWorkRegularProjects);
+                    $renderSidebarBucket('sidebar-bucket-work', 'Work', $workRegularProjects);
                 }
                 ?>
             </div>
@@ -277,7 +327,10 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php } ?>
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <a href="https://docker-site-manager.pk/sites" class="btn btn-warning" target="_blank" rel="noopener">
+                    <i class="bi bi-gear-fill" aria-hidden="true"></i> Manage project
+                </a>
                 <input type="text" id="searchInput" class="form-control search-box" style="max-width: 16rem;" placeholder="Search…" onkeyup="filterItems()">
             </div>
             
@@ -297,15 +350,37 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                 <div class="collapse show" id="dashboard-projects">
                     <div class="card-body">
                         <?php
-                        $workProjects = $projectsByCategory['work'] ?? [];
-
                         if (!$myworkVisible) {
                             $anyDashboard = false;
-                            foreach ($workProjects as $project) {
-                                $anyDashboard = true;
+                            $renderDashboardBucket = static function (string $bucketId, string $label, array $projects): void {
                                 ?>
-                                <a href="https://<?= urlencode($project) ?>/" class="btn btn-primary mb-2 me-1" target="_blank" rel="noopener">📁 <?= htmlspecialchars($project) ?></a>
+                                <div class="border rounded mb-3 overflow-hidden">
+                                    <button class="w-100 btn btn-light text-start d-flex justify-content-between align-items-center rounded-0 py-2 px-3 fw-semibold small" type="button" data-bs-toggle="collapse" data-bs-target="#<?= htmlspecialchars($bucketId, ENT_QUOTES, 'UTF-8') ?>" aria-expanded="true">
+                                        <span><?= htmlspecialchars($label) ?></span>
+                                        <i class="bi bi-chevron-down small text-muted" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="collapse show border-top" id="<?= htmlspecialchars($bucketId, ENT_QUOTES, 'UTF-8') ?>">
+                                        <div class="p-3 bg-body-secondary bg-opacity-25">
+                                            <?php
+                                            if ($projects === []) { ?>
+                                                <span class="text-muted small">No folders in this bucket.</span>
+                                            <?php } else {
+                                                foreach ($projects as $project) { ?>
+                                                    <a href="https://<?= urlencode($project) ?>/" class="btn btn-primary mb-2 me-1" target="_blank" rel="noopener">📁 <?= htmlspecialchars($project) ?></a>
+                                                <?php }
+                                            } ?>
+                                        </div>
+                                    </div>
+                                </div>
                                 <?php
+                            };
+                            if ($workHtmlProjects !== []) {
+                                $anyDashboard = true;
+                                $renderDashboardBucket('dashboard-bucket-html', 'HTML', $workHtmlProjects);
+                            }
+                            if ($workRegularProjects !== []) {
+                                $anyDashboard = true;
+                                $renderDashboardBucket('dashboard-bucket-work', 'Work', $workRegularProjects);
                             }
                             if (!$anyDashboard) { ?>
                                 <p class="text-muted mb-0">
@@ -339,8 +414,11 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                                 </div>
                                 <?php
                             };
-                            $renderDashboardBucket('dashboard-bucket-mywork', 'My Work', $myWorkDisplayProjects);
-                            $renderDashboardBucket('dashboard-bucket-work', 'Work', $workProjects);
+                            if ($htmlProjects !== []) {
+                                $renderDashboardBucket('dashboard-bucket-html', 'HTML', $htmlProjects);
+                            }
+                            $renderDashboardBucket('dashboard-bucket-mywork', 'My Work', $myWorkRegularProjects);
+                            $renderDashboardBucket('dashboard-bucket-work', 'Work', $workRegularProjects);
                         }
                         ?>
                     </div>

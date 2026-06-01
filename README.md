@@ -6,7 +6,8 @@ A local landing page for Docker-hosted `.pk` sites. It lists application shortcu
 
 ## Features
 
-- **Applications** — fixed shortcuts to common tools (phpMyAdmin, MailHog, Sphinx, etc.)
+- **Applications** — fixed shortcuts to common tools (phpMyAdmin, MailHog, Sphinx, Site Manager, etc.)
+- **Manage project** — opens [Docker Site Manager](https://docker-site-manager.pk/sites) to list and manage sites
 - **Projects** — auto-discovered folders, grouped into:
   - **My Work** — folders under `projects/mywork/` and `projects/yii/` (hidden until unlocked)
   - **Work** — folders under `projects/work/` (always visible)
