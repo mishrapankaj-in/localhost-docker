@@ -204,6 +204,19 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
             font-size: 1.35rem;
             box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.18);
         }
+        .readme-lightbox .modal-dialog {
+            max-width: min(960px, calc(100vw - 2rem));
+        }
+        .readme-lightbox .modal-body {
+            padding: 0;
+            min-height: 60vh;
+        }
+        .readme-lightbox iframe {
+            display: block;
+            width: 100%;
+            min-height: 60vh;
+            border: 0;
+        }
     </style>
     <script>
         function filterItems() {
@@ -328,9 +341,14 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
                 </div>
             <?php } ?>
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <a href="https://sitemanager.pk" class="btn btn-warning" target="_blank" rel="noopener">
-                    <i class="bi bi-gear-fill" aria-hidden="true"></i> Manage project
-                </a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="https://sitemanager.pk" class="btn btn-warning" target="_blank" rel="noopener">
+                        <i class="bi bi-gear-fill" aria-hidden="true"></i> Manage project
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#readmeModal">
+                        <i class="bi bi-book" aria-hidden="true"></i> Read ME
+                    </button>
+                </div>
                 <input type="text" id="searchInput" class="form-control search-box" style="max-width: 16rem;" placeholder="Search…" onkeyup="filterItems()">
             </div>
             
@@ -472,6 +490,38 @@ $workDocumentRoot = realpath($workPath) ?: $workPath;
         });
     </script>
     <?php } ?>
+
+    <div class="modal fade readme-lightbox" id="readmeModal" tabindex="-1" aria-labelledby="readmeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="readmeModalLabel">README</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="readme.php" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">Open preview</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <iframe id="readmePreviewFrame" title="README preview" loading="lazy" src="about:blank" data-src="readme.php?embed=1"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var readmeModal = document.getElementById('readmeModal');
+            var readmeFrame = document.getElementById('readmePreviewFrame');
+            if (!readmeModal || !readmeFrame) {
+                return;
+            }
+            readmeModal.addEventListener('show.bs.modal', function () {
+                if (readmeFrame.getAttribute('src') === 'about:blank') {
+                    readmeFrame.setAttribute('src', readmeFrame.getAttribute('data-src') || 'readme.php?embed=1');
+                }
+            });
+        });
+    </script>
 
     <div class="modal fade" id="myworkUnlockModal" tabindex="-1" aria-labelledby="myworkUnlockModalLabel" aria-hidden="true">
         <div class="modal-dialog">
