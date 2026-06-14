@@ -68,11 +68,13 @@ Each discovered subfolder name becomes a link: `https://{folder-name}/`.
 ```text
 localhost.pk/
 ├── index.php          # Application: logic + UI (single file)
+├── readme.php         # README.md preview (standalone + embed for lightbox)
 ├── phpinfo.php        # PHP environment diagnostic
 ├── .env               # Optional LOCALHOST_PK_MYWORK_KEY (not committed)
 ├── README.md          # User-facing setup and customization guide
 └── docs/
     ├── ARCHITECTURE.md
+    ├── QA-REVIEW-LCLDCR-T00001.md
     ├── AGENT-PILOT-MARKER.md
     └── TEST-E-MARKER.md
 ```

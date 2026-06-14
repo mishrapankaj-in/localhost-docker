@@ -80,8 +80,11 @@ For example, `sphinx.pk` lives under `work/` but is shown as an Application link
 | File | Purpose |
 |------|---------|
 | `index.php` | Dashboard UI and logic |
+| `readme.php` | README preview (`?embed=1` for dashboard lightbox) |
 | `phpinfo.php` | PHP environment details |
 | `.env` | Optional My Work unlock secret |
+| `docs/ARCHITECTURE.md` | Project architecture reference |
+| `docs/QA-REVIEW-LCLDCR-T00001.md` | QA review checklist for architecture deliverable |
 
 ## Security
 
